@@ -1,0 +1,25 @@
+{
+  "name": "private-bitcoin",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dcousens/private-bitcoin.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dcousens/private-bitcoin/issues"
+  },
+  "homepage": "https://github.com/dcousens/private-bitcoin#readme",
+  "dependencies": {
+    "easy-express-api": "^1.2.0",
+    "indexd": "^0.8.13",
+    "run-parallel": "^1.1.6",
+    "typeforce": "^1.12.0"
+  }
+}
