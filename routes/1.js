@@ -1,10 +1,18 @@
-let { adapter } = require('./indexd')
+let { get: indexd } = require('../service')
 let bodyParser = require('body-parser')
 let bitcoin = require('bitcoinjs-lib')
+let debug = require('debug')('1')
 let parallel = require('run-parallel')
-let rpc = require('./rpc')
+let rpc = require('../rpc')
 let typeforce = require('typeforce')
 let isHex64 = typeforce.HexN(64)
+
+let API_KEYS = {}
+require('fs')
+  .readFileSync(process.env.KEYDB)
+  .toString('utf8')
+  .split('\n')
+  .forEach(x => (API_KEYS[x] = true))
 
 module.exports = function (router, callback) {
   router.get('/a/:address/txs', (req, res) => {
@@ -17,7 +25,7 @@ module.exports = function (router, callback) {
     let height = parseInt(req.query.height)
     if (!Number.isFinite(height)) height = 0
 
-    adapter.transactionIdsByScriptId(scId, height, (err, txIdSet) => {
+    indexd().transactionIdsByScriptId(scId, height, (err, txIdSet) => {
       if (err) return res.easy(err)
 
       let tasks = {}
@@ -39,7 +47,7 @@ module.exports = function (router, callback) {
     let height = parseInt(req.query.height)
     if (!Number.isFinite(height)) height = 0
 
-    adapter.transactionIdsByScriptId(scId, height, (err, result) => res.easy(err, Object.keys(result)))
+    indexd().transactionIdsByScriptId(scId, height, (err, result) => res.easy(err, Object.keys(result)))
   })
 
   router.get('/a/:address/seen', (req, res) => {
@@ -49,7 +57,7 @@ module.exports = function (router, callback) {
       scId = bitcoin.crypto.sha256(script).toString('hex')
     } catch (e) { return res.easy(400) }
 
-    adapter.seenScriptId(scId, res.easy)
+    indexd().seenScriptId(scId, res.easy)
   })
 
   router.get('/a/:address/unspents', (req, res) => {
@@ -59,7 +67,7 @@ module.exports = function (router, callback) {
       scId = bitcoin.crypto.sha256(script).toString('hex')
     } catch (e) { return res.easy(400) }
 
-    adapter.utxosByScriptId(scId, res.easy)
+    indexd().utxosByScriptId(scId, res.easy)
   })
 
   router.get('/t/:id', (req, res) => {
@@ -71,7 +79,7 @@ module.exports = function (router, callback) {
   router.get('/t/:id/block', (req, res) => {
     if (!isHex64(req.params.id)) return res.easy(400)
 
-    adapter.blockIdByTransactionId(req.params.id, res.easy)
+    indexd().blockIdByTransactionId(req.params.id, res.easy)
   })
 
   router.post('/t/push', bodyParser.text(), (req, res) => {
@@ -120,7 +128,7 @@ module.exports = function (router, callback) {
     if (!Number.isFinite(count)) count = 12
     count = Math.min(count, 64)
 
-    adapter.blockchain.fees(count, (err, results) => {
+    indexd().blockchain.fees(count, (err, results) => {
       if (results) {
         results.forEach((x) => {
           x.kB = Math.floor(x.size / 1024)
@@ -132,17 +140,17 @@ module.exports = function (router, callback) {
   })
 
   function authMiddleware (req, res, next) {
-    let auth = bitcoin.crypto.sha256(req.params.pass).toString('base64')
-    if (auth !== process.env.APIAUTH) return res.easy(401)
+    // XXX: this isnt safe
+    if (req.query.key in API_KEYS) return res.easy(401)
     next()
   }
 
-  router.get('/m/generate', authMiddleware, (req, res) => {
+  router.post('/m/generate', authMiddleware, (req, res) => {
     rpc('generate', [1], res.easy)
   })
 
-  router.get('/m/faucet', authMiddleware, (req, res) => {
-    rpc('sendtoaddress', [req.params.address], res.easy)
+  router.post('/m/faucet', authMiddleware, (req, res) => {
+    rpc('sendtoaddress', [req.query.address, 0.001], res.easy)
   })
 
   callback()

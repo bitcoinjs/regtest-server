@@ -17,9 +17,13 @@
   },
   "homepage": "https://github.com/dcousens/private-bitcoin#readme",
   "dependencies": {
+    "bitcoinjs-lib": "^3.3.2",
     "easy-express-api": "^1.2.0",
     "indexd": "^0.8.13",
+    "leveldown": "^2.1.1",
     "run-parallel": "^1.1.6",
-    "typeforce": "^1.12.0"
+    "typeforce": "^1.12.0",
+    "yajrpc": "^1.4.4",
+    "zmq": "^2.15.3"
   }
 }

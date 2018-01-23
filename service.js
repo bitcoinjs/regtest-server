@@ -38,7 +38,7 @@ module.exports = function initialize (callback) {
       if (sequence !== expectedSequence) {
         if (sequence < expectedSequence) debugZmq(`bitcoind may have restarted`)
         else debugZmq(`${sequence - expectedSequence} messages lost`)
-        indexd.resync()
+        indexd.resync(errorSink)
       }
 
       switch (topic) {
