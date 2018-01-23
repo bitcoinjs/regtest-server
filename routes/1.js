@@ -63,13 +63,13 @@ module.exports = function (router, callback) {
   })
 
   router.get('/t/:id', (req, res) => {
-    if (!isHex64(req.params.id)) return res.status(400).end()
+    if (!isHex64(req.params.id)) return res.easy(400)
 
     rpc('getrawtransaction', req.params.id, res.easy)
   })
 
   router.get('/t/:id/block', (req, res) => {
-    if (!isHex64(req.params.id)) return res.status(400).end()
+    if (!isHex64(req.params.id)) return res.easy(400)
 
     adapter.blockIdByTransactionId(req.params.id, res.easy)
   })
@@ -81,8 +81,24 @@ module.exports = function (router, callback) {
     })
   })
 
-  router.get('/b/:id/header', (req, res) => {
-    if (!isHex64(req.params.id)) return res.status(400).end()
+  router.get('/b/best', (req, res) => {
+    rpc('getbestblockhash', [], res.easy)
+  })
+
+  function bestInjector (req, res, next) {
+    if (req.params.id === 'best') {
+      return rpc('getbestblockhash', [], (err, id) => {
+        if (err) return next(err)
+        req.params.id = id
+        next()
+      })
+    }
+
+    next()
+  }
+
+  router.get('/b/:id/header', bestInjector, (req, res) => {
+    if (!isHex64(req.params.id)) return res.easy(400)
 
     rpc('getblockheader', [req.params.id, true], (err, json) => {
       if (err && /not found/.test(err.message)) return res.easy(err, err.message)
@@ -90,17 +106,13 @@ module.exports = function (router, callback) {
     })
   })
 
-  router.get('/b/:id/height', (req, res) => {
-    if (!isHex64(req.params.id)) return res.status(400).end()
+  router.get('/b/:id/height', bestInjector, (req, res) => {
+    if (!isHex64(req.params.id)) return res.easy(400)
 
     rpc('getblockheader', [req.params.id, false], (err, json) => {
       if (err && /not found/.test(err.message)) return res.easy(err, err.message)
-      res.easy(err, json)
+      res.easy(err, json && json.height)
     })
-  })
-
-  router.get('/b/height', (req, res) => {
-    rpc('getblockcount', [], res.easy)
   })
 
   router.get('/b/fees', (req, res) => {
