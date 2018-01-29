@@ -1,7 +1,6 @@
 let { get: indexd } = require('../service')
 let bodyParser = require('body-parser')
 let bitcoin = require('bitcoinjs-lib')
-let debug = require('debug')('1')
 let parallel = require('run-parallel')
 let rpc = require('../rpc')
 let typeforce = require('typeforce')
@@ -128,7 +127,7 @@ module.exports = function (router, callback) {
     if (!Number.isFinite(count)) count = 12
     count = Math.min(count, 64)
 
-    indexd().blockchain.fees(count, (err, results) => {
+    indexd().latestFeesForNBlocks(count, (err, results) => {
       if (results) {
         results.forEach((x) => {
           x.kB = Math.floor(x.size / 1024)
