@@ -24,7 +24,7 @@ module.exports = function (router, callback) {
     let height = parseInt(req.query.height)
     if (!Number.isFinite(height)) height = 0
 
-    indexd().transactionIdsByScriptId(scId, height, (err, txIdSet) => {
+    indexd().transactionIdsByScriptId(scId, [height, 0xffffffff], (err, txIdSet) => {
       if (err) return res.easy(err)
 
       let tasks = {}
@@ -46,7 +46,7 @@ module.exports = function (router, callback) {
     let height = parseInt(req.query.height)
     if (!Number.isFinite(height)) height = 0
 
-    indexd().transactionIdsByScriptId(scId, height, (err, result) => res.easy(err, Object.keys(result)))
+    indexd().transactionIdsByScriptId(scId, [height, 0xffffffff], (err, result) => res.easy(err, Object.keys(result)))
   })
 
   router.get('/a/:address/seen', (req, res) => {
@@ -66,7 +66,7 @@ module.exports = function (router, callback) {
       scId = bitcoin.crypto.sha256(script).toString('hex')
     } catch (e) { return res.easy(400) }
 
-    indexd().utxosByScriptId(scId, res.easy)
+    indexd().utxosByScriptId(scId, [0, 0xffffffff], res.easy)
   })
 
   router.get('/t/:id', (req, res) => {
