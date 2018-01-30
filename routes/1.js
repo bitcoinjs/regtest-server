@@ -72,7 +72,7 @@ module.exports = function (router, callback) {
   router.get('/t/:id', (req, res) => {
     if (!isHex64(req.params.id)) return res.easy(400)
 
-    rpc('getrawtransaction', req.params.id, res.easy)
+    rpc('getrawtransaction', [req.params.id, false], res.easy)
   })
 
   router.get('/t/:id/block', (req, res) => {
@@ -81,7 +81,7 @@ module.exports = function (router, callback) {
     indexd().blockIdByTransactionId(req.params.id, res.easy)
   })
 
-  router.post('/t/push', bodyParser.text(), (req, res) => {
+  router.put('/t/push', bodyParser.text(), (req, res) => {
     rpc('sendrawtransaction', [req.body], (err) => {
       if (err && /./.test(err.message)) return res.easy(err, err.message)
       res.easy(err)
@@ -138,17 +138,18 @@ module.exports = function (router, callback) {
     })
   })
 
+  // regtest features
   function authMiddleware (req, res, next) {
     // XXX: this isnt safe
-    if (req.query.key in API_KEYS) return res.easy(401)
-    next()
+    if (req.query.key in API_KEYS) return next()
+    res.easy(401)
   }
 
-  router.post('/m/generate', authMiddleware, (req, res) => {
+  router.post('/r/generate', authMiddleware, (req, res) => {
     rpc('generate', [1], res.easy)
   })
 
-  router.post('/m/faucet', authMiddleware, (req, res) => {
+  router.post('/r/faucet', authMiddleware, (req, res) => {
     rpc('sendtoaddress', [req.query.address, 0.001], res.easy)
   })
 
