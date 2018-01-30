@@ -1,3 +1,4 @@
+let bitcoin = require('bitcoinjs-lib')
 let leveldown = require('leveldown')
 let Indexd = require('indexd')
 let rpc = require('../rpc')
@@ -22,11 +23,12 @@ db.open({}, (err) => {
     gte: { scId: MIN64, height: 0, txId: MIN64, vout: 0 },
     lte: { scId: MAX64, height: 0xffffffff, txId: MAX64, vout: 0xffffffff }
   }, (key, value) => {
-    debug('KV', i, key, value)
-
+    let y = i
     indexd.txoByTxo(key, (err, txo) => {
       if (err) return
-      debug('TXO', txo)
+
+      let address = bitcoin.address.fromOutputScript(txo.script, bitcoin.networks.testnet)
+      debug('ST', y, Object.assign(key, value, txo, { address }))
     })
 
     ++i
