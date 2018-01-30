@@ -154,7 +154,7 @@ module.exports = function (router, callback) {
   }
 
   router.post('/r/generate', authMiddleware, (req, res) => {
-    rpc('getaccountaddress', [0], (err, address) => {
+    rpc('getnewaddress', [], (err, address) => {
       if (err) return res.easy(err)
 
       rpc('generatetoaddress', [parseInt(req.query.count) || 1, address], res.easy)
