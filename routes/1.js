@@ -154,7 +154,11 @@ module.exports = function (router, callback) {
   }
 
   router.post('/r/generate', authMiddleware, (req, res) => {
-    rpc('generate', [parseInt(req.query.count) || 1], res.easy)
+    rpc('getaccountaddress', [0], (err, address) => {
+      if (err) return res.easy(err)
+
+      rpc('generatetoaddress', [parseInt(req.query.count) || 1, address], res.easy)
+    })
   })
 
   router.post('/r/faucet', authMiddleware, (req, res) => {
