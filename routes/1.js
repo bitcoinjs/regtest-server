@@ -133,13 +133,13 @@ module.exports = function (router, callback) {
     })
   })
 
-  let API_KEYS = {}
+  let AUTH_KEYS = {}
 
   // regtest features
   function authMiddleware (req, res, next) {
     if (!req.query.key) return res.easy(401)
     let hash = bitcoin.crypto.sha256(req.query.key).toString('hex')
-    if (hash in API_KEYS) return next()
+    if (hash in AUTH_KEYS) return next()
     debug(`UNAUTHORIZED ${req.query.key}`)
     res.easy(401)
   }
@@ -160,8 +160,8 @@ module.exports = function (router, callback) {
       .split('\n')
       .filter(x => x)
       .map(x => bitcoin.crypto.sha256(x).toString('hex')) // XXX: yes, from plain-text :)
-      .forEach(x => (API_KEYS[x] = true))
-    debug(`imported ${API_KEYS.length} authorized API keys`)
+      .forEach(x => (AUTH_KEYS[x] = true))
+    debug(`imported ${Object.keys(AUTH_KEYS).length} authorized keys`.toUpperCase())
 
     callback()
   })
