@@ -1,6 +1,10 @@
 let leveldown = require('leveldown')
-let db = leveldown(process.env.INDEXDB)
+let Indexd = require('indexd')
+let rpc = require('../rpc')
 let SCRIPTTYPE = require('indexd/indexes/script').TYPE
+
+let db = leveldown(process.env.INDEXDB)
+let indexd = new Indexd(db, rpc)
 
 function debug () {
   if (arguments[0] instanceof Error) console.error.apply(null, arguments)
@@ -20,6 +24,12 @@ db.open({}, (err) => {
     lte: { scId: MAX64, height: 0xffffffff, txId: MAX64, vout: 0xffffffff }
   }, (key, value) => {
     debug('KV', i, key, value)
+
+    indexd.txoByTxo(key, (err, txo) => {
+      if (err) return
+      debug('TXO', txo)
+    })
+
     ++i
   }, (err) => {
     if (err) debug(err)

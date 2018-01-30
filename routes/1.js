@@ -8,20 +8,27 @@ let rpc = require('../rpc')
 let typeforce = require('typeforce')
 let isHex64 = typeforce.HexN(64)
 
+let DBLIMIT = 440 // max sequential leveldb walk
 let NETWORK = bitcoin.networks.testnet
+
+function addressToScriptId (address) {
+  let script = bitcoin.address.toOutputScript(address, NETWORK)
+  return bitcoin.crypto.sha256(script).toString('hex')
+}
 
 module.exports = function (router, callback) {
   router.get('/a/:address/txs', (req, res) => {
     let scId
     try {
-      let script = bitcoin.address.toOutputScript(req.params.address, NETWORK)
-      scId = bitcoin.crypto.sha256(script).toString('hex')
+      scId = addressToScriptId(req.params.address)
     } catch (e) { return res.easy(400) }
 
     let height = parseInt(req.query.height)
     if (!Number.isFinite(height)) height = 0
 
-    indexd().transactionIdsByScriptId(scId, [height, 0xffffffff], (err, txIdSet) => {
+    indexd().transactionIdsByScriptRange({
+      scId, heightRange: [0, 0xffffffff]
+    }, DBLIMIT, (err, txIdSet) => {
       if (err) return res.easy(err)
 
       let tasks = {}
@@ -36,21 +43,21 @@ module.exports = function (router, callback) {
   router.get('/a/:address/txids', (req, res) => {
     let scId
     try {
-      let script = bitcoin.address.toOutputScript(req.params.address, NETWORK)
-      scId = bitcoin.crypto.sha256(script).toString('hex')
+      scId = addressToScriptId(req.params.address)
     } catch (e) { return res.easy(400) }
 
     let height = parseInt(req.query.height)
     if (!Number.isFinite(height)) height = 0
 
-    indexd().transactionIdsByScriptId(scId, [height, 0xffffffff], (err, result) => res.easy(err, Object.keys(result)))
+    indexd().transactionIdsByScriptRange({
+      scId, heightRange: [0, 0xffffffff]
+    }, DBLIMIT, (err, result) => res.easy(err, Object.keys(result)))
   })
 
   router.get('/a/:address/seen', (req, res) => {
     let scId
     try {
-      let script = bitcoin.address.toOutputScript(req.params.address, NETWORK)
-      scId = bitcoin.crypto.sha256(script).toString('hex')
+      scId = addressToScriptId(req.params.address)
     } catch (e) { return res.easy(400) }
 
     indexd().seenScriptId(scId, res.easy)
@@ -59,11 +66,12 @@ module.exports = function (router, callback) {
   router.get('/a/:address/unspents', (req, res) => {
     let scId
     try {
-      let script = bitcoin.address.toOutputScript(req.params.address, NETWORK)
-      scId = bitcoin.crypto.sha256(script).toString('hex')
+      scId = addressToScriptId(req.params.address)
     } catch (e) { return res.easy(400) }
 
-    indexd().utxosByScriptId(scId, [0, 0xffffffff], res.easy)
+    indexd().utxosByScriptRange({
+      scId, heightRange: [0, 0xffffffff]
+    }, DBLIMIT, res.easy)
   })
 
   router.get('/t/:id', (req, res) => {
