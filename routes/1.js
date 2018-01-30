@@ -140,7 +140,6 @@ module.exports = function (router, callback) {
     if (!req.query.key) return res.easy(401)
     let hash = bitcoin.crypto.sha256(req.query.key).toString('hex')
     if (hash in AUTH_KEYS) return next()
-    debug(`UNAUTHORIZED ${req.query.key}`)
     res.easy(401)
   }
 
