@@ -144,7 +144,7 @@ module.exports = function (router, callback) {
   }
 
   router.post('/r/generate', authMiddleware, (req, res) => {
-    rpc('generate', [1], res.easy)
+    rpc('generate', [parseInt(req.query.count) || 1], res.easy)
   })
 
   router.post('/r/faucet', authMiddleware, (req, res) => {
