@@ -8,11 +8,13 @@ let rpc = require('../rpc')
 let typeforce = require('typeforce')
 let isHex64 = typeforce.HexN(64)
 
+let NETWORK = bitcoin.networks.testnet
+
 module.exports = function (router, callback) {
   router.get('/a/:address/txs', (req, res) => {
     let scId
     try {
-      let script = bitcoin.address.toOutputScript(req.params.address)
+      let script = bitcoin.address.toOutputScript(req.params.address, NETWORK)
       scId = bitcoin.crypto.sha256(script).toString('hex')
     } catch (e) { return res.easy(400) }
 
@@ -34,7 +36,7 @@ module.exports = function (router, callback) {
   router.get('/a/:address/txids', (req, res) => {
     let scId
     try {
-      let script = bitcoin.address.toOutputScript(req.params.address)
+      let script = bitcoin.address.toOutputScript(req.params.address, NETWORK)
       scId = bitcoin.crypto.sha256(script).toString('hex')
     } catch (e) { return res.easy(400) }
 
@@ -47,7 +49,7 @@ module.exports = function (router, callback) {
   router.get('/a/:address/seen', (req, res) => {
     let scId
     try {
-      let script = bitcoin.address.toOutputScript(req.params.address)
+      let script = bitcoin.address.toOutputScript(req.params.address, NETWORK)
       scId = bitcoin.crypto.sha256(script).toString('hex')
     } catch (e) { return res.easy(400) }
 
@@ -57,7 +59,7 @@ module.exports = function (router, callback) {
   router.get('/a/:address/unspents', (req, res) => {
     let scId
     try {
-      let script = bitcoin.address.toOutputScript(req.params.address)
+      let script = bitcoin.address.toOutputScript(req.params.address, NETWORK)
       scId = bitcoin.crypto.sha256(script).toString('hex')
     } catch (e) { return res.easy(400) }
 
