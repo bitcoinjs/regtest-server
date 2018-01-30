@@ -16,10 +16,9 @@ let MAX64 = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
 
 db.open({}, (err) => {
   if (err) return debug(err)
-  db = require('../dbwrapper')(db)
 
   let i = 0
-  db.iterator(SCRIPTTYPE, {
+  indexd.db.iterator(SCRIPTTYPE, {
     gte: { scId: MIN64, height: 0, txId: MIN64, vout: 0 },
     lte: { scId: MAX64, height: 0xffffffff, txId: MAX64, vout: 0xffffffff }
   }, (key, value) => {
