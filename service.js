@@ -38,13 +38,13 @@ module.exports = function initialize (callback) {
       if (sequence !== expectedSequence) {
         if (sequence < expectedSequence) debugZmq(`bitcoind may have restarted`)
         else debugZmq(`${sequence - expectedSequence} messages lost`)
-        indexd.resync(errorSink)
+        indexd.tryResync(errorSink)
       }
 
       switch (topic) {
         case 'hashblock': {
           debugZmq(topic, message)
-          return indexd.resync(errorSink)
+          return indexd.tryResync(errorSink)
         }
 
         case 'hashtx': {
@@ -54,8 +54,8 @@ module.exports = function initialize (callback) {
       }
     })
 
-    setInterval(() => indexd.resync(errorSink), 60000) // attempt every minute
-    indexd.resync(errorSink)
+    setInterval(() => indexd.tryResync(errorSink), 60000) // attempt every minute
+    indexd.tryResync(errorSink)
 
     callback()
   })
