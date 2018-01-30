@@ -148,7 +148,7 @@ module.exports = function (router, callback) {
   })
 
   router.post('/r/faucet', authMiddleware, (req, res) => {
-    rpc('sendtoaddress', [req.query.address, 0.001], res.easy)
+    rpc('sendtoaddress', [req.query.address, parseInt(req.query.value) / 1e8], res.easy)
   })
 
   fs.readFile(process.env.KEYDB, (err, buffer) => {
