@@ -27,8 +27,12 @@ db.open({}, (err) => {
     indexd.txoByTxo(key, (err, txo) => {
       if (err) return
 
-      let address = bitcoin.address.fromOutputScript(txo.script, bitcoin.networks.testnet)
-      debug('ST', y, Object.assign(key, value, txo, { address }))
+      let extra = {}
+      try {
+        extra.address = bitcoin.address.fromOutputScript(txo.script, bitcoin.networks.testnet)
+      } catch (e) { extra.asm = bitcoin.script.toASM(txo.script) }
+
+      debug('ST', y, Object.assign(key, value, txo, extra))
     })
 
     ++i
