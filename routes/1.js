@@ -1,6 +1,7 @@
 let { get: indexd } = require('../service')
 let bodyParser = require('body-parser')
 let bitcoin = require('bitcoinjs-lib')
+let debug = require('debug')('1')
 let fs = require('fs')
 let parallel = require('run-parallel')
 let rpc = require('../rpc')
@@ -136,8 +137,10 @@ module.exports = function (router, callback) {
 
   // regtest features
   function authMiddleware (req, res, next) {
-    // XXX: this isnt safe
-    if (req.query.key in API_KEYS) return next()
+    if (!req.query.key) return res.easy(401)
+    let hash = bitcoin.crypto.sha256(req.query.key).toString('hex')
+    if (hash in API_KEYS) return next()
+    debug(`UNAUTHORIZED ${req.query.key}`)
     res.easy(401)
   }
 
@@ -155,7 +158,10 @@ module.exports = function (router, callback) {
     buffer
       .toString('utf8')
       .split('\n')
+      .filter(x => x)
+      .map(x => bitcoin.crypto.sha256(x).toString('hex')) // XXX: yes, from plain-text :)
       .forEach(x => (API_KEYS[x] = true))
+    debug(`imported ${API_KEYS.length} authorized API keys`)
 
     callback()
   })
