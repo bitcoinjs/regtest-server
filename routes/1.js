@@ -1,17 +1,11 @@
 let { get: indexd } = require('../service')
 let bodyParser = require('body-parser')
 let bitcoin = require('bitcoinjs-lib')
+let fs = require('fs')
 let parallel = require('run-parallel')
 let rpc = require('../rpc')
 let typeforce = require('typeforce')
 let isHex64 = typeforce.HexN(64)
-
-let API_KEYS = {}
-require('fs')
-  .readFileSync(process.env.KEYDB)
-  .toString('utf8')
-  .split('\n')
-  .forEach(x => (API_KEYS[x] = true))
 
 module.exports = function (router, callback) {
   router.get('/a/:address/txs', (req, res) => {
@@ -138,6 +132,8 @@ module.exports = function (router, callback) {
     })
   })
 
+  let API_KEYS = {}
+
   // regtest features
   function authMiddleware (req, res, next) {
     // XXX: this isnt safe
@@ -153,5 +149,14 @@ module.exports = function (router, callback) {
     rpc('sendtoaddress', [req.query.address, 0.001], res.easy)
   })
 
-  callback()
+  fs.readFile(process.env.KEYDB, (err, buffer) => {
+    if (err) return callback(err)
+
+    buffer
+      .toString('utf8')
+      .split('\n')
+      .forEach(x => (API_KEYS[x] = true))
+
+    callback()
+  })
 }
