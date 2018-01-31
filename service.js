@@ -56,6 +56,7 @@ module.exports = function initialize (callback) {
 
     setInterval(() => indexd.tryResync(errorSink), 60000) // attempt every minute
     indexd.tryResync(errorSink)
+    indexd.tryResyncMempool(errorSink) // only necessary once
 
     callback()
   })
