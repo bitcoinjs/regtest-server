@@ -16,6 +16,31 @@ function addressToScriptId (address) {
   return bitcoin.crypto.sha256(script).toString('hex')
 }
 
+function rpcJSON2CB (tx) {
+  return {
+    txId: tx.hash,
+    txHex: tx.hex,
+    vsize: tx.vsize,
+    version: tx.version,
+    locktime: tx.locktime,
+    ins: tx.vin.map((x) => {
+      return {
+        txId: x.txid,
+        vout: x.vout,
+        script: x.scriptSig.hex,
+        sequence: x.sequence
+      }
+    }),
+    outs: tx.vout.map((x) => {
+      return {
+        address: x.scriptPubKey.addresses ? x.scriptPubKey.addresses[0] : undefined,
+        script: x.scriptPubKey.hex,
+        value: Math.round(x.value * 1e8) // satoshis
+      }
+    })
+  }
+}
+
 module.exports = function (router, callback) {
   router.get('/a/:address/txs', (req, res) => {
     let scId
@@ -78,6 +103,16 @@ module.exports = function (router, callback) {
     if (!isHex64(req.params.id)) return res.easy(400)
 
     rpc('getrawtransaction', [req.params.id, false], res.easy)
+  })
+
+  router.get('/t/:id/json', (req, res) => {
+    if (!isHex64(req.params.id)) return res.easy(400)
+
+    rpc('getrawtransaction', [req.params.id, true], (err, json) => {
+      if (err) return res.easy(err)
+
+      res.easy(null, rpcJSON2CB(json))
+    })
   })
 
   router.get('/t/:id/block', (req, res) => {
