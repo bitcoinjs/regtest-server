@@ -90,6 +90,17 @@ module.exports = function (router, callback) {
     }, DBLIMIT, res.easy)
   })
 
+  router.get('/t/mempool', (req, res) => {
+    rpc('getrawmempool', [false], res.easy)
+  })
+
+  router.put('/t/push', bodyParser.text(), (req, res) => {
+    rpc('sendrawtransaction', [req.body], (err) => {
+      if (err && /./.test(err.message)) return res.easy(err, err.message)
+      res.easy(err)
+    })
+  })
+
   function hexWare (req, res, next) {
     if (!isHex64(req.params.id)) return res.easy(400)
     next()
@@ -111,19 +122,24 @@ module.exports = function (router, callback) {
     indexd().blockIdByTransactionId(req.params.id, res.easy)
   })
 
-  router.get('/t/mempool', (req, res) => {
-    rpc('getrawmempool', [false], res.easy)
-  })
-
-  router.put('/t/push', bodyParser.text(), (req, res) => {
-    rpc('sendrawtransaction', [req.body], (err) => {
-      if (err && /./.test(err.message)) return res.easy(err, err.message)
-      res.easy(err)
-    })
-  })
-
   router.get('/b/best', (req, res) => {
     rpc('getbestblockhash', [], res.easy)
+  })
+
+  router.get('/b/fees', (req, res) => {
+    let count = parseInt(req.query.count)
+    if (!Number.isFinite(count)) count = 12
+    count = Math.min(count, 64)
+
+    indexd().latestFeesForNBlocks(count, (err, results) => {
+      if (results) {
+        results.forEach((x) => {
+          x.kB = Math.floor(x.size / 1024)
+        })
+      }
+
+      res.easy(err, results)
+    })
   })
 
   function bestInjector (req, res, next) {
@@ -145,33 +161,10 @@ module.exports = function (router, callback) {
     })
   })
 
-  router.get('/b/:id/txs', bestInjector, hexWare, (req, res) => {
-    rpc('getblock', [req.params.id, true], (err, json) => {
-      if (err && /not found/.test(err.message)) return res.easy(err, err.message)
-      res.easy(err, json)
-    })
-  })
-
   router.get('/b/:id/height', bestInjector, hexWare, (req, res) => {
     rpc('getblockheader', [req.params.id, false], (err, json) => {
       if (err && /not found/.test(err.message)) return res.easy(err, err.message)
       res.easy(err, json && json.height)
-    })
-  })
-
-  router.get('/b/fees', (req, res) => {
-    let count = parseInt(req.query.count)
-    if (!Number.isFinite(count)) count = 12
-    count = Math.min(count, 64)
-
-    indexd().latestFeesForNBlocks(count, (err, results) => {
-      if (results) {
-        results.forEach((x) => {
-          x.kB = Math.floor(x.size / 1024)
-        })
-      }
-
-      res.easy(err, results)
     })
   })
 
