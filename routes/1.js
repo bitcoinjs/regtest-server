@@ -56,7 +56,7 @@ module.exports = function (router, callback) {
     if (!Number.isFinite(height)) height = 0
 
     indexd().transactionIdsByScriptRange({
-      scId, heightRange: [0, 0xffffffff]
+      scId, heightRange: [0, 0xffffffff], mempool: true
     }, DBLIMIT, (err, txIds) => {
       if (err) return res.easy(err)
 
@@ -72,21 +72,21 @@ module.exports = function (router, callback) {
     if (!Number.isFinite(height)) height = 0
 
     indexd().transactionIdsByScriptRange({
-      scId, heightRange: [0, 0xffffffff]
+      scId, heightRange: [0, 0xffffffff], mempool: true
     }, DBLIMIT, res.easy)
   })
 
   router.get('/a/:address/txos', addressWare, (req, res) => {
     let { scId } = req.params
     indexd().txosByScriptRange({
-      scId, heightRange: [0, 0xffffffff]
+      scId, heightRange: [0, 0xffffffff], mempool: true
     }, DBLIMIT, res.easy)
   })
 
   router.get('/a/:address/unspents', addressWare, (req, res) => {
     let { scId } = req.params
     indexd().utxosByScriptRange({
-      scId, heightRange: [0, 0xffffffff]
+      scId, heightRange: [0, 0xffffffff], mempool: true
     }, DBLIMIT, res.easy)
   })
 
