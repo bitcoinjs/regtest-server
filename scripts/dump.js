@@ -30,6 +30,7 @@ db.open({}, (err) => {
       let extra = {}
       try {
         extra.address = bitcoin.address.fromOutputScript(txo.script, bitcoin.networks.testnet)
+        extra.script = extra.script.toString('hex')
       } catch (e) { extra.asm = bitcoin.script.toASM(txo.script) }
 
       debug('ST', y, Object.assign(key, value, txo, extra))
