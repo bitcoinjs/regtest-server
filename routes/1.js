@@ -11,11 +11,6 @@ let isHex64 = typeforce.HexN(64)
 let DBLIMIT = 440 // max sequential leveldb walk
 let NETWORK = bitcoin.networks.testnet
 
-function addressToScriptId (address) {
-  let script = bitcoin.address.toOutputScript(address, NETWORK)
-  return bitcoin.crypto.sha256(script).toString('hex')
-}
-
 function rpcJSON2CB (tx) {
   return {
     txId: tx.hash,
@@ -42,12 +37,16 @@ function rpcJSON2CB (tx) {
 }
 
 module.exports = function (router, callback) {
-  router.get('/a/:address/txs', (req, res) => {
-    let scId
+  function addressWare (req, res, next) {
     try {
-      scId = addressToScriptId(req.params.address)
+      let script = bitcoin.address.toOutputScript(req.params.address, NETWORK)
+      req.params.scId = bitcoin.crypto.sha256(script).toString('hex')
     } catch (e) { return res.easy(400) }
+    next()
+  }
 
+  router.get('/a/:address/txs', addressWare, (req, res) => {
+    let { scId } = req.params
     let height = parseInt(req.query.height)
     if (!Number.isFinite(height)) height = 0
 
@@ -65,12 +64,8 @@ module.exports = function (router, callback) {
     })
   })
 
-  router.get('/a/:address/txids', (req, res) => {
-    let scId
-    try {
-      scId = addressToScriptId(req.params.address)
-    } catch (e) { return res.easy(400) }
-
+  router.get('/a/:address/txids', addressWare, (req, res) => {
+    let { scId } = req.params
     let height = parseInt(req.query.height)
     if (!Number.isFinite(height)) height = 0
 
@@ -79,21 +74,20 @@ module.exports = function (router, callback) {
     }, DBLIMIT, (err, result) => res.easy(err, Object.keys(result)))
   })
 
-  router.get('/a/:address/seen', (req, res) => {
-    let scId
-    try {
-      scId = addressToScriptId(req.params.address)
-    } catch (e) { return res.easy(400) }
-
+  router.get('/a/:address/seen', addressWare, (req, res) => {
+    let { scId } = req.params
     indexd().seenScriptId(scId, res.easy)
   })
 
-  router.get('/a/:address/unspents', (req, res) => {
-    let scId
-    try {
-      scId = addressToScriptId(req.params.address)
-    } catch (e) { return res.easy(400) }
+  router.get('/a/:address/txos', addressWare, (req, res) => {
+    let { scId } = req.params
+    indexd().txosByScriptRange({
+      scId, heightRange: [0, 0xffffffff]
+    }, DBLIMIT, res.easy)
+  })
 
+  router.get('/a/:address/unspents', addressWare, (req, res) => {
+    let { scId } = req.params
     indexd().utxosByScriptRange({
       scId, heightRange: [0, 0xffffffff]
     }, DBLIMIT, res.easy)
