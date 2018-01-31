@@ -111,6 +111,10 @@ module.exports = function (router, callback) {
     indexd().blockIdByTransactionId(req.params.id, res.easy)
   })
 
+  router.get('/t/mempool', bodyParser.text(), (req, res) => {
+    rpc('getrawmempool', [false], res.easy)
+  })
+
   router.put('/t/push', bodyParser.text(), (req, res) => {
     rpc('sendrawtransaction', [req.body], (err) => {
       if (err && /./.test(err.message)) return res.easy(err, err.message)
