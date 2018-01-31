@@ -45,6 +45,11 @@ module.exports = function (router, callback) {
     next()
   }
 
+  router.get('/a/:address/firstseen', addressWare, (req, res) => {
+    let { scId } = req.params
+    indexd().firstSeenScriptId(scId, res.easy)
+  })
+
   router.get('/a/:address/txs', addressWare, (req, res) => {
     let { scId } = req.params
     let height = parseInt(req.query.height)
@@ -69,11 +74,6 @@ module.exports = function (router, callback) {
     indexd().transactionIdsByScriptRange({
       scId, heightRange: [0, 0xffffffff]
     }, DBLIMIT, res.easy)
-  })
-
-  router.get('/a/:address/seen', addressWare, (req, res) => {
-    let { scId } = req.params
-    indexd().seenScriptId(scId, res.easy)
   })
 
   router.get('/a/:address/txos', addressWare, (req, res) => {
