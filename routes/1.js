@@ -52,15 +52,12 @@ module.exports = function (router, callback) {
 
     indexd().transactionIdsByScriptRange({
       scId, heightRange: [0, 0xffffffff]
-    }, DBLIMIT, (err, txIdSet) => {
+    }, DBLIMIT, (err, txIds) => {
       if (err) return res.easy(err)
 
-      let tasks = {}
-      for (let txId in txIdSet) {
-        tasks[txId] = (next) => rpc('getrawtransaction', [txId], next)
-      }
-
-      parallel(tasks, res.easy)
+      parallel(txIds.map((txId) => {
+        return (next) => rpc('getrawtransaction', [txId], next)
+      }), res.easy)
     })
   })
 
@@ -71,7 +68,7 @@ module.exports = function (router, callback) {
 
     indexd().transactionIdsByScriptRange({
       scId, heightRange: [0, 0xffffffff]
-    }, DBLIMIT, (err, result) => res.easy(err, Object.keys(result)))
+    }, DBLIMIT, res.easy)
   })
 
   router.get('/a/:address/seen', addressWare, (req, res) => {
