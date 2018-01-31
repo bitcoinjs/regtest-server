@@ -90,15 +90,16 @@ module.exports = function (router, callback) {
     }, DBLIMIT, res.easy)
   })
 
-  router.get('/t/:id', (req, res) => {
+  function hexWare (req, res, next) {
     if (!isHex64(req.params.id)) return res.easy(400)
+    next()
+  }
 
+  router.get('/t/:id', hexWare, (req, res) => {
     rpc('getrawtransaction', [req.params.id, false], res.easy)
   })
 
-  router.get('/t/:id/json', (req, res) => {
-    if (!isHex64(req.params.id)) return res.easy(400)
-
+  router.get('/t/:id/json', hexWare, (req, res) => {
     rpc('getrawtransaction', [req.params.id, true], (err, json) => {
       if (err) return res.easy(err)
 
@@ -106,9 +107,7 @@ module.exports = function (router, callback) {
     })
   })
 
-  router.get('/t/:id/block', (req, res) => {
-    if (!isHex64(req.params.id)) return res.easy(400)
-
+  router.get('/t/:id/block', hexWare, (req, res) => {
     indexd().blockIdByTransactionId(req.params.id, res.easy)
   })
 
@@ -135,18 +134,21 @@ module.exports = function (router, callback) {
     next()
   }
 
-  router.get('/b/:id/header', bestInjector, (req, res) => {
-    if (!isHex64(req.params.id)) return res.easy(400)
-
+  router.get('/b/:id/header', bestInjector, hexWare, (req, res) => {
     rpc('getblockheader', [req.params.id, true], (err, json) => {
       if (err && /not found/.test(err.message)) return res.easy(err, err.message)
       res.easy(err, json)
     })
   })
 
-  router.get('/b/:id/height', bestInjector, (req, res) => {
-    if (!isHex64(req.params.id)) return res.easy(400)
+  router.get('/b/:id/txs', bestInjector, hexWare, (req, res) => {
+    rpc('getblock', [req.params.id, true], (err, json) => {
+      if (err && /not found/.test(err.message)) return res.easy(err, err.message)
+      res.easy(err, json)
+    })
+  })
 
+  router.get('/b/:id/height', bestInjector, hexWare, (req, res) => {
     rpc('getblockheader', [req.params.id, false], (err, json) => {
       if (err && /not found/.test(err.message)) return res.easy(err, err.message)
       res.easy(err, json && json.height)
