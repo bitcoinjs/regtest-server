@@ -111,7 +111,7 @@ module.exports = function (router, callback) {
     indexd().blockIdByTransactionId(req.params.id, res.easy)
   })
 
-  router.get('/t/mempool', bodyParser.text(), (req, res) => {
+  router.get('/t/mempool', (req, res) => {
     rpc('getrawmempool', [false], res.easy)
   })
 
