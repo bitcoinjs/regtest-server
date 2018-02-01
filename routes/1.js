@@ -155,16 +155,16 @@ module.exports = function (router, callback) {
   }
 
   router.get('/b/:id/header', bestInjector, hexWare, (req, res) => {
-    rpc('getblockheader', [req.params.id, true], (err, json) => {
+    rpc('getblockheader', [req.params.id, false], (err, json) => {
       if (err && /not found/.test(err.message)) return res.easy(err, err.message)
       res.easy(err, json)
     })
   })
 
   router.get('/b/:id/height', bestInjector, hexWare, (req, res) => {
-    rpc('getblockheader', [req.params.id, false], (err, json) => {
+    rpc('getblockheader', [req.params.id, true], (err, json) => {
       if (err && /not found/.test(err.message)) return res.easy(err, err.message)
-      res.easy(err, json && json.height)
+      res.easy(err, err ? undefined : json.height)
     })
   })
 
