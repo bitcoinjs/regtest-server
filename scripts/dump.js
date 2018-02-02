@@ -2,7 +2,7 @@ let bitcoin = require('bitcoinjs-lib')
 let leveldown = require('leveldown')
 let Indexd = require('indexd')
 let rpc = require('../rpc')
-let SCRIPTTYPE = require('indexd/indexes/script').TYPE
+let { types: scriptTypes } = require('indexd/indexes/script')
 
 let db = leveldown(process.env.INDEXDB)
 let indexd = new Indexd(db, rpc)
@@ -19,7 +19,7 @@ db.open({}, (err) => {
   if (err) return debug(err)
 
   let i = 0
-  indexd.db.iterator(SCRIPTTYPE, {
+  indexd.db.iterator(scriptTypes.data, {
     gte: { scId: MIN64, height: 0, txId: MIN64, vout: 0 },
     lte: { scId: MAX64, height: 0xffffffff, txId: MAX64, vout: 0xffffffff }
   }, (key, value) => {
