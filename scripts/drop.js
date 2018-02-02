@@ -15,7 +15,7 @@ db.open({}, (err) => {
   if (err) return debug(err)
 
   let atomic = indexd.db.atomic()
-  atomic.del(txoTypes.tip)
+  atomic.del(txoTypes.tip, {})
   atomic.write((err) => {
     if (err) debug(err)
     debug('FIN')
