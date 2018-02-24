@@ -24,6 +24,6 @@
     "run-parallel": "^1.1.6",
     "typeforce": "^1.12.0",
     "yajrpc": "^1.4.4",
-    "zmq": "^2.15.3"
+    "zeromq": "^4.6.0"
   }
 }

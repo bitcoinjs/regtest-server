@@ -4,7 +4,7 @@ let debugZmqTx = require('debug')('service:zmq:tx')
 let Indexd = require('indexd')
 let leveldown = require('leveldown')
 let rpc = require('./rpc')
-let zmq = require('zmq')
+let zmq = require('zeromq')
 
 let db = leveldown(process.env.INDEXDB)
 let indexd = new Indexd(db, rpc)
@@ -26,18 +26,19 @@ module.exports = function initialize (callback) {
     zmqSock.subscribe('hashblock')
     zmqSock.subscribe('hashtx')
 
-    let lastSequence = 0
+    let sequences = {}
     zmqSock.on('message', (topic, message, sequence) => {
       topic = topic.toString('utf8')
       message = message.toString('hex')
       sequence = sequence.readUInt32LE()
 
-      // were any ZMQ messages were lost?
-      let expectedSequence = lastSequence + 1
-      lastSequence = sequence
-      if (sequence !== expectedSequence) {
-        if (sequence < expectedSequence) debugZmq(`bitcoind may have restarted`)
-        else debugZmq(`${sequence - expectedSequence} messages lost`)
+      if (sequences[topic] === undefined) sequences[topic] = sequence
+      else sequences[topic] += 1
+
+      if (sequence !== sequences[topic]) {
+        if (sequence < sequences[topic]) debugZmq(`bitcoind may have restarted`)
+        else debugZmq(`${sequence - sequences[topic]} messages lost`)
+        sequences[topic] = sequence
         indexd.tryResync(errorSink)
       }
 
