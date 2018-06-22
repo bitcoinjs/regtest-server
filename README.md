@@ -1,4 +1,4 @@
-# private-bitcoin
+# regtest-server
 
 This is a functioning [express](https://www.npmjs.com/package/express) HTTP API written using [indexd](https://www.npmjs.com/package/indexd).
 
