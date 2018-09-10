@@ -94,7 +94,7 @@ module.exports = function (router, callback) {
     rpc('getrawmempool', [false], res.easy)
   })
 
-  router.put('/t/push', bodyParser.text(), (req, res) => {
+  router.post('/t/push', bodyParser.text(), (req, res) => {
     rpc('sendrawtransaction', [req.body], (err) => {
       if (err && /./.test(err.message)) return res.easy(err, err.message)
       res.easy(err)
