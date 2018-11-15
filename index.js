@@ -1,10 +1,19 @@
+const debug = require('debug')
+const debugWare = require('debug-ware')
+const cors = require('cors')
+
 require('easy-express-api')({
-  debug: require('debug')('api'),
-  port: process.env.PORT,
+  middleware: [
+    cors(),
+    debugWare(debug('bjrt'))
+  ],
   routes: {
     '/1': require('./routes/1')
   },
-  services: {
-    'indexd': require('./service')
-  }
+  services: [
+    require('./service')
+  ]
+}, (err, server) => {
+  if (err) throw err
+  server.listen(80)
 })
