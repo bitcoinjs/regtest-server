@@ -15,5 +15,5 @@ require('easy-express-api')({
   ]
 }, (err, server) => {
   if (err) throw err
-  server.listen(80)
+  server.listen(process.env.PORT)
 })
