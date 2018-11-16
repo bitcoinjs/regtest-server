@@ -1,5 +1,5 @@
 {
-  "name": "private-bitcoin",
+  "name": "regtest-server",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,22 +8,22 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dcousens/private-bitcoin.git"
+    "url": "git+https://github.com/bitcoinjs/regtest-server.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/dcousens/private-bitcoin/issues"
+    "url": "https://github.com/bitcoinjs/regtest-server/issues"
   },
-  "homepage": "https://github.com/dcousens/private-bitcoin#readme",
+  "homepage": "https://github.com/bitcoinjs/regtest-server#readme",
   "dependencies": {
-    "bitcoinjs-lib": "^3.3.2",
-    "easy-express-api": "^2.0.0",
+    "bitcoinjs-lib": "^4.0.2",
+    "easy-express-api": "^2.0.5",
     "indexd": "^0.9.0",
-    "leveldown": "^2.1.1",
-    "run-parallel": "^1.1.6",
-    "typeforce": "^1.12.0",
+    "leveldown": "^4.0.1",
+    "run-parallel": "^1.1.9",
+    "typeforce": "^1.16.0",
     "yajrpc": "^1.4.4",
-    "zeromq": "^4.6.0"
+    "zeromq": "^5.1.0"
   }
 }
