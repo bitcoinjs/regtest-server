@@ -13,7 +13,7 @@
     "url": "git+https://github.com/bitcoinjs/regtest-server.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "BSD3",
   "bugs": {
     "url": "https://github.com/bitcoinjs/regtest-server/issues"
   },
