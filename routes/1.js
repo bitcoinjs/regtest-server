@@ -13,7 +13,7 @@ let NETWORK = bitcoin.networks.testnet
 
 function rpcJSON2CB (tx) {
   return {
-    txId: tx.hash,
+    txId: tx.txid,
     txHex: tx.hex,
     vsize: tx.vsize,
     version: tx.version,
