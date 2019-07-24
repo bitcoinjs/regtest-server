@@ -11,6 +11,24 @@ let isHex64 = typeforce.HexN(64)
 let DBLIMIT = 440 // max sequential leveldb walk
 let NETWORK = bitcoin.networks.testnet
 
+let sleep = ms => new Promise(r => setTimeout(r, ms))
+
+let pRpc = (cmd, args) => new Promise((resolve, reject) => {
+  rpc(cmd, args, (err, data) => {
+    if (err) return reject(err)
+    else return resolve(data)
+  })
+})
+
+let pUtxosByScriptRange = scId => new Promise((resolve, reject) => {
+  indexd().utxosByScriptRange({
+    scId, heightRange: [0, 0xffffffff], mempool: true
+  }, DBLIMIT, (err, data) => {
+    if (err) return reject(err)
+    else return resolve(data)
+  })
+})
+
 function rpcJSON2CB (tx) {
   return {
     txId: tx.txid,
@@ -38,8 +56,11 @@ function rpcJSON2CB (tx) {
 
 module.exports = function (router, callback) {
   function addressWare (req, res, next) {
+    const { address } = req.params
     try {
-      let script = bitcoin.address.toOutputScript(req.params.address, NETWORK)
+      let script = !address.match(/^[0-9a-f]+$/i) ?
+        bitcoin.address.toOutputScript(address, NETWORK) :
+        Buffer.from(address, 'hex')
       req.params.scId = bitcoin.crypto.sha256(script).toString('hex')
     } catch (e) { return res.easy(400) }
     next()
@@ -188,6 +209,37 @@ module.exports = function (router, callback) {
 
   router.post('/r/faucet', authMiddleware, (req, res) => {
     rpc('sendtoaddress', [req.query.address, parseInt(req.query.value) / 1e8], res.easy)
+  })
+
+  router.post('/r/faucetScript', authMiddleware, async (req, res) => {
+    try {
+      const key = bitcoin.ECPair.makeRandom({ network: NETWORK })
+      const payment = bitcoin.payments.p2pkh({ pubkey: key.publicKey, network: NETWORK })
+      const address = payment.address
+      const scId = bitcoin.crypto.sha256(payment.output).toString('hex')
+
+      const txId = await pRpc('sendtoaddress', [address, parseInt(req.query.value) * 2 / 1e8])
+      let unspent
+      let counter = 10
+      while (!unspent) {
+        const unspents = await pUtxosByScriptRange(scId)
+        unspent = unspents.filter(x => x.txId === txId)[0]
+        if (!unspent) {
+          counter--
+          if (counter <= 0) throw new Error('No outputs')
+          await sleep(10)
+        }
+      }
+      const txvb = new bitcoin.TransactionBuilder(NETWORK);
+      txvb.addInput(unspent.txId, unspent.vout, undefined, payment.output);
+      txvb.addOutput(Buffer.from(req.query.script, 'hex'), parseInt(req.query.value));
+      txvb.sign(0, key);
+      const txv = txvb.build();
+      await pRpc('sendrawtransaction', [txv.toHex()])
+      res.easy(undefined, txv.getId())
+    } catch (err) {
+      res.easy(err)
+    }
   })
 
   fs.readFile(process.env.KEYDB, (err, buffer) => {
