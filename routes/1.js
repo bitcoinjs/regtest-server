@@ -9,7 +9,7 @@ let typeforce = require('typeforce')
 let isHex64 = typeforce.HexN(64)
 
 let DBLIMIT = 440 // max sequential leveldb walk
-let NETWORK = bitcoin.networks.testnet
+let NETWORK = bitcoin.networks.regtest
 
 let sleep = ms => new Promise(r => setTimeout(r, ms))
 
@@ -111,12 +111,46 @@ module.exports = function (router, callback) {
     }, DBLIMIT, res.easy)
   })
 
+  router.get('/a/alt/:address/unspents', addressWare, async (req, res) => {
+    // This is added to mimic a certain API for educational use.
+    try {
+      let { scId } = req.params
+      const unspents = await pUtxosByScriptRange(scId)
+      const results = unspents.map(unspent => {
+        const script = !!unspent.address
+          ? bitcoin.address.toOutputScript(unspent.address, NETWORK)
+          : null
+        return {
+          value_int: unspent.value,
+          txid: unspent.txId,
+          n: unspent.vout,
+          ...(!unspent.address ? {} : { addresses: [unspent.address] }),
+          ...(!unspent.address ? {} : { script_pub_key: {
+            asm: bitcoin.script.toASM(script),
+            hex: script.toString('hex')
+          } }),
+        }
+      })
+      res.easy(undefined, results)
+    } catch (err) {
+      res.easy(err)
+    }
+  })
+
   router.get('/t/mempool', (req, res) => {
     rpc('getrawmempool', [false], res.easy)
   })
 
   router.post('/t/push', bodyParser.text(), (req, res) => {
     rpc('sendrawtransaction', [req.body], (err) => {
+      if (err && /./.test(err.message)) return res.easy(err, err.message)
+      res.easy(err)
+    })
+  })
+
+  router.post('/t/alt/pushtx', bodyParser.json(), (req, res) => {
+    // This mimics other api
+    rpc('sendrawtransaction', [req.body.hex], (err) => {
       if (err && /./.test(err.message)) return res.easy(err, err.message)
       res.easy(err)
     })
