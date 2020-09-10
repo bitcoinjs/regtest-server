@@ -3,7 +3,7 @@ MAINTAINER Jonathan Underwood
 
 RUN apt update && apt install -y software-properties-common
 
-RUN add-apt-repository -y ppa:bitcoin/bitcoin && \
+RUN add-apt-repository -y ppa:luke-jr/bitcoincore && \
    apt update && \
    apt install -y \
    curl \
