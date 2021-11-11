@@ -3,19 +3,32 @@ MAINTAINER Jonathan Underwood
 
 RUN apt update && apt install -y software-properties-common
 
-RUN add-apt-repository -y ppa:luke-jr/bitcoincore && \
-   apt update && \
+RUN apt update && \
    apt install -y \
    curl \
    wget \
    tar \
    python \
    build-essential \
+   gnupg2 \
    libzmq3-dev \
    libsnappy-dev && \
-   apt install -y \
-   bitcoind && \
    curl --silent --location https://deb.nodesource.com/setup_10.x | bash -
+
+WORKDIR /root
+
+COPY achow.asc ./
+
+RUN gpg --import achow.asc && \
+  wget https://bitcoincore.org/bin/bitcoin-core-22.0/SHA256SUMS && \
+  wget https://bitcoincore.org/bin/bitcoin-core-22.0/SHA256SUMS.asc && \
+  wget https://bitcoincore.org/bin/bitcoin-core-22.0/bitcoin-22.0-x86_64-linux-gnu.tar.gz && \
+  sha256sum --ignore-missing --check SHA256SUMS && \
+  (gpg --verify SHA256SUMS.asc 2>&1 | grep "Good signature from \"Andrew Chow" || exit 1) && \
+  tar xvf bitcoin-22.0-x86_64-linux-gnu.tar.gz && \
+  rm -f bitcoin-22.0-x86_64-linux-gnu.tar.gz SHA256SUM* achow.asc && \
+  cp -R bitcoin-22.0/* /usr/ && \
+  rm -rf bitcoin-22.0/
 
 RUN apt install -y \
   git \
@@ -23,8 +36,6 @@ RUN apt install -y \
   nodejs && \
   mkdir /root/regtest-data && \
   echo "satoshi" > /root/regtest-data/KEYS
-
-WORKDIR /root
 
 COPY run_regtest_app.sh run_bitcoind_service.sh install_leveldb.sh ./
 

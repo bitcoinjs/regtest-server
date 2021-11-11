@@ -46,7 +46,7 @@ function rpcJSON2CB (tx) {
     }),
     outs: tx.vout.map((x) => {
       return {
-        address: x.scriptPubKey.addresses ? x.scriptPubKey.addresses[0] : undefined,
+        address: x.scriptPubKey.addresses ? x.scriptPubKey.addresses[0] : x.scriptPubKey.address ? x.scriptPubKey.address : undefined,
         script: x.scriptPubKey.hex,
         value: Math.round(x.value * 1e8) // satoshis
       }
@@ -242,7 +242,7 @@ module.exports = function (router, callback) {
   })
 
   router.post('/r/faucet', authMiddleware, (req, res) => {
-    rpc('sendtoaddress', [req.query.address, parseInt(req.query.value) / 1e8], res.easy)
+    rpc('sendtoaddress', [req.query.address, parseInt(req.query.value) / 1e8, '', '', false, false, null, 'unset', false, 1], res.easy)
   })
 
   router.post('/r/faucetScript', authMiddleware, async (req, res) => {
@@ -252,7 +252,7 @@ module.exports = function (router, callback) {
       const address = payment.address
       const scId = bitcoin.crypto.sha256(payment.output).toString('hex')
 
-      const txId = await pRpc('sendtoaddress', [address, parseInt(req.query.value) * 2 / 1e8])
+      const txId = await pRpc('sendtoaddress', [address, parseInt(req.query.value) * 2 / 1e8, '', '', false, false, null, 'unset', false, 1])
       let unspent
       let counter = 10
       while (!unspent) {
