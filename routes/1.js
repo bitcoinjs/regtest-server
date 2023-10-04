@@ -234,11 +234,14 @@ module.exports = function (router, callback) {
   }
 
   router.post('/r/generate', authMiddleware, (req, res) => {
-    rpc('getnewaddress', [], (err, address) => {
-      if (err) return res.easy(err)
-
-      rpc('generatetoaddress', [parseInt(req.query.count) || 1, address], res.easy)
-    })
+    if (req.query.address) {
+      rpc('generatetoaddress', [parseInt(req.query.count) || 1, req.query.address], res.easy)
+    } else {
+      rpc('getnewaddress', [], (err, address) => {
+        if (err) return res.easy(err)
+        rpc('generatetoaddress', [parseInt(req.query.count) || 1, address], res.easy)
+      })
+    }
   })
 
   router.post('/r/faucet', authMiddleware, (req, res) => {
