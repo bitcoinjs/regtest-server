@@ -19,16 +19,16 @@
   },
   "homepage": "https://github.com/bitcoinjs/regtest-server#readme",
   "dependencies": {
-    "bitcoinjs-lib": "5.0.x",
+    "bitcoinjs-lib": "^6.1.5",
     "cors": "^2.8.5",
-    "debug": "^4.1.0",
+    "debug": "^4.3.4",
     "debug-ware": "^1.2.10",
     "easy-express-api": "^2.0.5",
-    "indexd": "^0.9.0",
-    "leveldown": "^4.0.1",
-    "run-parallel": "^1.1.9",
-    "typeforce": "^1.16.0",
+    "indexd": "^0.9.1",
+    "leveldown": "^6.1.1",
+    "run-parallel": "^1.2.0",
+    "typeforce": "^1.18.0",
     "yajrpc": "^1.4.4",
-    "zeromq": "^5.1.0"
+    "zeromq": "^5.3.1"
   }
 }
