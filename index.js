@@ -15,5 +15,9 @@ require('easy-express-api')({
   ]
 }, (err, server) => {
   if (err) throw err
+  if (!process.env.PORT) {
+    console.log(`PORT not set`);
+    process.exit(-1);
+  }
   server.listen(process.env.PORT)
 })
