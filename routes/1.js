@@ -276,17 +276,24 @@ module.exports = function (router, callback) {
     }
   })
 
-  fs.readFile(process.env.KEYDB, (err, buffer) => {
-    if (err) return callback(err)
-
-    buffer
-      .toString('utf8')
-      .split('\n')
-      .filter(x => x)
-      .map(x => bitcoin.crypto.sha256(x).toString('hex')) // XXX: yes, from plain-text :)
-      .forEach(x => (AUTH_KEYS[x] = true))
-    debug(`imported ${Object.keys(AUTH_KEYS).length} authorized keys`.toUpperCase())
-
-    callback()
-  })
+  if (!process.env.KEYDB) {
+    console.log("KEYDB is not set");
+    process.exit(-1);
+  } else {
+    if (!fs.existsSync(process.env.KEYDB)) {
+      console.log(`${process.env.KEYDB} file does not exist`);
+      process.exit(-1);
+    }
+    fs.readFile(process.env.KEYDB, (err, buffer) => {
+      if (err) return callback(err)
+      buffer
+        .toString('utf8')
+        .split('\n')
+        .filter(x => x)
+        .map(x => bitcoin.crypto.sha256(x).toString('hex')) // XXX: yes, from plain-text :)
+        .forEach(x => (AUTH_KEYS[x] = true))
+      debug(`imported ${Object.keys(AUTH_KEYS).length} authorized keys`.toUpperCase())
+      callback()
+    })
+  }
 }

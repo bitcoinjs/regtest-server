@@ -6,6 +6,11 @@ let leveldown = require('leveldown')
 let rpc = require('./rpc')
 let zmq = require('zeromq')
 
+if (!process.env.INDEXDB) {
+  console.log("INDEXDB is not set");
+  process.exit(-1);
+}
+
 let db = leveldown(process.env.INDEXDB)
 let indexd = new Indexd(db, rpc)
 
@@ -20,6 +25,11 @@ module.exports = function initialize (callback) {
   }, (err) => {
     if (err) return callback(err)
     debug(`Opened leveldb @ ${process.env.INDEXDB}`)
+
+    if (!process.env.ZMQ) {
+      console.log(`ZMQ is not set`);
+      process.exit(-1);
+    }
 
     let zmqSock = zmq.socket('sub')
     zmqSock.connect(process.env.ZMQ)
