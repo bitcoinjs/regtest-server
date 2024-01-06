@@ -1,7 +1,7 @@
 const fs = require('fs');
 let auth;
 
-if (process.env.RPCOOKIE) {
+if (process.env.RPCCOOKIE) {
   try {
     auth = fs.readFileSync(process.env.RPCCOOKIE);
   } catch (e) {
@@ -14,7 +14,7 @@ if (process.env.RPCAUTH) {
 }
 
 if (!auth) {
-  console.log(`RPCAUTH or RPCOOKIE must be specified`);
+  console.log(`RPCAUTH or RPCCOOKIE must be specified`);
 }
 
 module.exports = require('yajrpc/qup')({
