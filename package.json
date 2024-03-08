@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/bitcoinjs/regtest-server#readme",
   "dependencies": {
-    "bitcoinjs-lib": "^6.1.5",
+    "bitcoinjs-lib": "^5.2.0",
     "cors": "^2.8.5",
     "debug": "^4.3.4",
     "debug-ware": "^1.2.10",
